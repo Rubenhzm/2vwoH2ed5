@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Begrippentrainer - Stedelijke Geografie</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #007BFF;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    #definition {
+      display: none;
+      margin-top: 20px;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      margin: 8px 0;
+    }
+    #scoreboard {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Begrippentrainer</h1>
+    <button onclick="startFlashcards()">Flashcards oefenen</button>
+    <button onclick="startQuiz()">Begrippentoets maken</button>
+  </div>
+
+  <div class="card" id="flashcard-mode" style="display:none">
+    <h2 id="term">Begrip</h2>
+    <div id="definition">Definitie</div>
+    <button onclick="showDefinition()">Laat definitie zien</button>
+    <button onclick="nextCard()">Volgende begrip</button>
+  </div>
+
+  <div class="card" id="quiz-mode" style="display:none">
+    <h2 id="quiz-question">Begrip</h2>
+    <div class="options" id="quiz-options"></div>
+    <div id="quiz-feedback"></div>
+    <div id="scoreboard">Score: <span id="score">0</span> / <span id="total">0</span></div>
+    <button onclick="nextQuizQuestion()">Volgende vraag</button>
+  </div>
+
+  <script>
+    const cards = [
+      { term: "Hoofdstad", def: "Belangrijkste stad waar vaak de regering zetelt" },
+      { term: "Landelijk gebied", def: "Gebied met een lage bevolkings- en bebouwingsdichtheid en weinig variatie in voorzieningen" },
+      { term: "Megastad", def: "Stad met meer dan 10 miljoen inwoners" },
+      { term: "Stedelijk gebied", def: "Gebied met een hoge bevolkings- en bebouwingsdichtheid en een grote variatie in welvaart en voorzieningen" },
+      { term: "Urbanisatie", def: "Proces waarbij mensen vanuit het landelijk gebied naar de stad verhuizen" },
+      { term: "Verstedelijkingsgraad", def: "Percentage van de bevolking dat in steden woont" },
+      { term: "Verstedelijkingstempo", def: "Percentage waarmee de bevolking in steden jaarlijks toeneemt" },
+      { term: "Wereldstad", def: "Stad die wereldwijd zeer belangrijk is" },
+      { term: "Grid", def: "Een rechthoekig stratenpatroon" },
+      { term: "Koloniale dubbelstad", def: "Stad met een oud centrum en een stadsdeel dat in de koloniale tijd is gebouwd" },
+      { term: "Primate city", def: "Grootste stad van een land, als deze veel meer inwoners heeft dan alle andere steden en/of veel belangrijker is op economisch, politiek of cultureel gebied" },
+      { term: "Relatieve ligging", def: "Hoe een plaats ligt ten opzichte van andere plaatsen" },
+      { term: "Satellietstad", def: "Nieuwe stad, op enige afstand van de oude stad, om deze te ontlasten en de bevolking te spreiden" },
+      { term: "Stedelijk netwerk", def: "Een groep steden in een land die op veel manieren verbonden zijn met elkaar" },
+      { term: "Central business district (CBD)", def: "Deel van de stad waar de zakenwereld zit, vaak met hoogbouw en hoge grondprijzen" },
+      { term: "Gentrificatie", def: "Proces waarbij een gunstig gelegen wijk ineens veel rijkere inwoners aantrekt" },
+      { term: "Re-urbanisatie", def: "Proces waarbij de stad (na een periode van suburbanisatie) weer mensen en bedrijven aantrekt" },
+      { term: "Segregatie", def: "Wanneer bevolkingsgroepen in een stad gescheiden van elkaar leven, bijvoorbeeld op basis van hun inkomen of afkomst" },
+      { term: "Sociale woningbouw", def: "De bouw van goede woningen voor mensen met een lager inkomen" },
+      { term: "Suburb", def: "Ruim opgezette woonwijk met laagbouw" },
+      { term: "Suburbanisatie", def: "Proces waarbij mensen en bedrijven vanuit de stad naar het omliggende platteland verhuizen" },
+      { term: "Zelfbouwwijk", def: "Wijk waarin de bewoners zelf de wijk, infrastructuur en voorzieningen aanleggen of opknappen" },
+    ];
+
+    let current = 0;
+
+    function startFlashcards() {
+      document.getElementById('flashcard-mode').style.display = 'block';
+      document.getElementById('quiz-mode').style.display = 'none';
+      current = 0;
+      document.getElementById('term').textContent = cards[current].term;
+      document.getElementById('definition').textContent = cards[current].def;
+      document.getElementById('definition').style.display = 'none';
+    }
+
+    function showDefinition() {
+      document.getElementById('definition').style.display = 'block';
+    }
+
+    function nextCard() {
+      current = (current + 1) % cards.length;
+      document.getElementById('term').textContent = cards[current].term;
+      document.getElementById('definition').textContent = cards[current].def;
+      document.getElementById('definition').style.display = 'none';
+    }
+
+    // Quizmodus
+    let quizCards = [];
+    let quizScore = 0;
+    let quizTotal = 0;
+
+    function startQuiz() {
+      document.getElementById('flashcard-mode').style.display = 'none';
+      document.getElementById('quiz-mode').style.display = 'block';
+      quizCards = [...cards];
+      quizScore = 0;
+      quizTotal = 0;
+      nextQuizQuestion();
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function nextQuizQuestion() {
+      document.getElementById('quiz-feedback').textContent = '';
+      if (quizCards.length === 0) {
+        document.getElementById('quiz-question').textContent = 'Klaar!';
+        document.getElementById('quiz-options').innerHTML = '';
+        return;
+      }
+
+      shuffle(quizCards);
+      const question = quizCards.pop();
+      document.getElementById('quiz-question').textContent = question.term;
+      document.getElementById('total').textContent = ++quizTotal;
+
+      const wrongAnswers = cards.filter(c => c.term !== question.term);
+      shuffle(wrongAnswers);
+      const options = [question.def, ...wrongAnswers.slice(0, 3).map(c => c.def)];
+      shuffle(options);
+
+      const optionsContainer = document.getElementById('quiz-options');
+      optionsContainer.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => {
+          if (opt === question.def) {
+            quizScore++;
+            document.getElementById('score').textContent = quizScore;
+            document.getElementById('quiz-feedback').textContent = '✔️ Goed!';
+          } else {
+            quizCards.push(question);
+            document.getElementById('quiz-feedback').textContent = `❌ Fout. Juist antwoord: ${question.def}`;
+          }
+        };
+        optionsContainer.appendChild(btn);
+      });
+    }
+  </script>
+</body>
+</html>
